@@ -1,0 +1,88 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
+
+const svg = `
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(512 300) rotate(90) scale(700)">
+      <stop offset="0" stop-color="#1E3F9C"/>
+      <stop offset="0.42" stop-color="#0B1738"/>
+      <stop offset="1" stop-color="#02040A"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="190" y1="170" x2="834" y2="854" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A7C7FF"/>
+      <stop offset="0.5" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#7A8DFF"/>
+    </linearGradient>
+    <linearGradient id="planet" x1="365" y1="345" x2="640" y2="693" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFCA80"/>
+      <stop offset="1" stop-color="#F17053"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="366" y1="606" x2="615" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E5F0FF" stop-opacity="0"/>
+      <stop offset="0.45" stop-color="#E5F0FF"/>
+      <stop offset="1" stop-color="#A7CAFF" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="softGlow" x="0" y="0" width="1024" height="1024" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+
+  <g opacity="0.8">
+    <circle cx="182" cy="216" r="6" fill="#FFFFFF"/>
+    <circle cx="278" cy="156" r="4" fill="#B3C8FF"/>
+    <circle cx="820" cy="240" r="5" fill="#FFFFFF"/>
+    <circle cx="756" cy="174" r="3" fill="#B3C8FF"/>
+    <circle cx="835" cy="730" r="4" fill="#FFFFFF"/>
+    <circle cx="198" cy="772" r="5" fill="#DCE8FF"/>
+    <circle cx="290" cy="846" r="3" fill="#9AB5FF"/>
+  </g>
+
+  <circle cx="512" cy="512" r="328" stroke="url(#ring)" stroke-width="28" opacity="0.9"/>
+  <circle cx="512" cy="512" r="352" stroke="rgba(255,255,255,0.16)" stroke-width="2" opacity="0.8"/>
+
+  <g opacity="0.65" filter="url(#softGlow)">
+    <ellipse cx="520" cy="516" rx="224" ry="132" transform="rotate(-20 520 516)" fill="#6BA8FF"/>
+  </g>
+
+  <ellipse cx="518" cy="514" rx="234" ry="124" transform="rotate(-20 518 514)" stroke="#D6E8FF" stroke-width="16" opacity="0.88"/>
+
+  <circle cx="498" cy="560" r="164" fill="url(#planet)"/>
+  <path d="M394 631C447 576 542 544 646 558C604 657 511 724 414 709C387 688 380 661 394 631Z" fill="#D75F4A" opacity="0.62"/>
+  <circle cx="446" cy="526" r="22" fill="#FFD89E" opacity="0.92"/>
+  <circle cx="549" cy="617" r="14" fill="#F3A36D" opacity="0.7"/>
+
+  <path d="M392 678L560 360L615 392L505 574L642 574L412 748L488 606L361 606L392 678Z" fill="#F5FAFF"/>
+  <path d="M392 678L560 360L615 392L505 574L642 574L412 748L488 606L361 606L392 678Z" fill="url(#trail)" opacity="0.35"/>
+
+  <path d="M344 804C430 862 582 875 694 800" stroke="#DCE8FF" stroke-width="20" stroke-linecap="round" opacity="0.9"/>
+  <path d="M312 234C408 171 584 158 711 228" stroke="#9AB5FF" stroke-width="12" stroke-linecap="round" opacity="0.55"/>
+</svg>`;
+
+const publicDir = new URL('../public/', import.meta.url);
+await mkdir(publicDir, { recursive: true });
+await writeFile(new URL('favicon.svg', publicDir), svg.trim(), 'utf8');
+
+const base = sharp(Buffer.from(svg));
+await base.clone().png({ compressionLevel: 9 }).resize(180, 180).toFile(fileURLToPath(new URL('apple-touch-icon.png', publicDir)));
+await base.clone().png({ compressionLevel: 9 }).resize(512, 512).toFile(fileURLToPath(new URL('icon-512.png', publicDir)));
+await base.clone().png({ compressionLevel: 9 }).resize(32, 32).toFile(fileURLToPath(new URL('favicon-32x32.png', publicDir)));
+await base.clone().png({ compressionLevel: 9 }).resize(16, 16).toFile(fileURLToPath(new URL('favicon-16x16.png', publicDir)));
+
+const manifest = {
+  name: 'NASA Mission Badge Archive',
+  short_name: 'NASA Badges',
+  icons: [
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+  ],
+  theme_color: '#050814',
+  background_color: '#050814',
+  display: 'standalone'
+};
+
+await writeFile(new URL('site.webmanifest', publicDir), JSON.stringify(manifest, null, 2), 'utf8');
+console.log('Icon assets generated.');
