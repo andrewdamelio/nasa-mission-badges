@@ -1,3 +1,5 @@
+<img width="1408" height="754" alt="image" src="https://github.com/user-attachments/assets/46c441ba-252e-459c-ae4a-93ce2bedc35c" />
+
 # NASA Mission Badge Archive
 
 A cinematic gallery website for NASA mission patches, built with Vite and plain JavaScript.
